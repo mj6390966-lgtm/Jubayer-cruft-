@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jubayer Game Zone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+
+        /* হেডার */
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 22px;
+            color: #1a1a2e;
+            box-shadow: 0 0 20px rgba(247, 151, 30, 0.5);
+        }
+
+        .header-info h2 { font-size: 20px; color: #ffd200; }
+        .header-info p { font-size: 12px; color: #aaa; }
+
+        /* গেম গ্রিড */
+        .games-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .game-card .icon {
+            font-size: 45px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .game-card h3 { font-size: 18px; margin-bottom: 5px; }
+        .game-card p { font-size: 12px; color: #aaa; }
+
+        /* গেম কন্টেইনার */
+        .game-screen {
+            display: none;
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeIn 0.3s;
+        }
+
+        .game-screen.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .back-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .status-text { font-size: 16px; font-weight: 600; color: #ffd200; }
+
+        /* ============ দাবা (Chess) ============ */
+        .chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border: 4px solid #4a3728;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .chess-square {
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s;
+        }
+
+        .chess-square.light { background: #f0d9b5; }
+        .chess-square.dark { background: #b58863; }
+        .chess-square.selected { background: #7ec850 !important; }
+        .chess-square.valid-move { box-shadow: inset 0 0 0 3px #7ec850; }
+
+        /* ============ লুডো (Ludo) ============ */
+        .ludo-board {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1;
+            margin: 0 auto;
+            background: #fff;
+            border: 4px solid #333;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ludo-cell {
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 8px;
+        }
+
+        .ludo-home { border-radius: 5px; }
+        .home-red { background: #ff4757; }
+        .home-green { background: #2ed573; }
+        .home-yellow { background: #ffa502; }
+        .home-blue { background: #1e90ff; }
+
+        .ludo-path { background: #f1f2f6; }
+        .ludo-center {
+            grid-column: 7 / 10;
+            grid-row: 7 / 10;
+            background: linear-gradient(135deg, #ff4757, #2ed573, #ffa502, #1e90ff);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .token {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .token-red { background: #ff4757; }
+        .token-green { background: #2ed573; }
+        .token-yellow { background: #ffa502; }
+        .token-blue { background: #1e90ff; }
+
+        /* ============ টেম্পল রান ============ */
+        .runner-canvas {
+            width: 100%;
+            max-width: 400px;
+            height: 500px;
+            margin: 0 auto;
+            display: block;
+            background: linear-gradient(180deg, #87CEEB, #f0d9b5);
+            border-radius: 15px;
+            border: 3px solid #4a3728;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            touch-action: none;
+        }
+
+        /* ============ ধাঁধা (Puzzle) ============ */
+        .puzzle-container {
+            max-width: 450px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .question-box {
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border-radius: 12px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover { background: rgba(255, 210, 0, 0.2); border-color: #ffd200; }
+        .option-btn.correct { background: #2ed573; border-color: #2ed573; }
+        .option-btn.wrong { background: #ff4757; border-color: #ff4757; }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #f7971e, #ffd200); color: #1a1a2e; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(247, 151, 30, 0.3); }
+
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; justify-content: center; flex-wrap: wrap; }
+
+        /* ডাইস */
+        .dice-container { text-align: center; margin: 15px 0; }
+        .dice {
+            width: 70px;
+            height: 70px;
+            background: white;
+            color: #333;
+            border-radius: 12px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: 0.3s;
+            border: 3px solid #ddd;
+        }
+
+        .dice:hover { transform: scale(1.1) rotate(5deg); }
+        .dice.rolling { animation: roll 0.5s; }
+
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .player-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .badge-red { background: #ff4757; }
+        .badge-green { background: #2ed573; }
+        .badge-yellow { background: #ffa502; }
+        .badge-blue { background: #1e90ff; }
+
+        /* চ্যাট বক্স (দাবা/লুডোর জন্য) */
+        .game-chat {
+            margin-top: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .game-chat input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            outline: none;
+        }
+
+        .game-chat button {
+            padding: 12px 20px;
+            background: #ffd200;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* গেম ওভার */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 12, 41, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .overlay.active { display: flex; }
+        .overlay h2 { font-size: 28px; color: #ffd200; margin-bottom: 15px; }
+        .overlay p { font-size: 16px; color: #ccc; margin-bottom: 20px; }
+
+        @media (max-width: 480px) {
+            .games-grid { grid-template-columns: 1fr 1fr; padding: 15px; }
+            .game-card .icon { font-size: 35px; }
+            .game-card h3 { font-size: 15px; }
+            .chess-square { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- হেডার -->
+    <div class="header">
+        <div class="logo">J</div>
+        <div class="header-info">
+            <h2>Jubayer Game Zone</h2>
+            <p>বন্ধুদের সাথে খেলুন</p>
+        </div>
+    </div>
+
+    <!-- হোম স্ক্রিন -->
+    <div id="homeScreen">
+        <div class="games-grid">
+            <div class="game-card" onclick="openGame('chess')">
+                <span class="icon">♟️</span>
+                <h3>দাবা</h3>
+                <p>বন্ধুর সাথে ২ জন খেলুন</p>
+            </div>
+            <div class="game-card" onclick="openGame('ludo')">
+                <span class="icon">🎲</span>
+                <h3>লুডো</h3>
+                <p>২-৪ জন একসাথে খেলুন</p>
+            </div>
+            <div class="game-card" onclick="openGame('runner')">
+                <span class="icon">🏃</span>
+                <h3>টেম্পল রান</h3>
+                <p>দ্রুত দৌড়ান, বাধা এড়ান</p>
+            </div>
+            <div class="game-card" onclick="openGame('puzzle')">
+                <span class="icon">🧩</span>
+                <h3>ধাঁধা</h3>
+                <p>বুদ্ধি পরীক্ষা করুন</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== দাবা গেম ==================== -->
+    <div class="game-screen" id="chessScreen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="goHome()"><i class="fas fa-arrow-left"></i> ফিরে যান</button>
+            <span class="status-text" id="chessStatus">সাদার চাল</span>
+            <button class="back-btn" onclick="resetChess()"><i class="fas fa-redo"></i></button>
+        </div>
+        <div class="player-info">
+            <span class="player-badge badge-red">⚫ কালো (উপরে)</span>
+            <span class="player-badge badge-yellow">⚪ সাদা (নিচে)</span>
+        </div>
+        <div class="chess-board" id="chessBoard"></div>
+        <div class="game-chat">
+            <input type="text" id="chessChatInput" placeholder="মেসেজ লিখুন...">
+            <button onclick="sendChat('chess')">পাঠান</button>
+        </div>
+        <div id="chessMessages" style="margin-top:10px; font-size:13px; color:#aaa; max-height:100px; overflow-y:auto;"></div>
+    </div>
+
+    <!-- ==================== লুডো গেম ==================== -->
+    <div class="game-screen" id="ludoScreen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="goHome()"><i class="fas fa-arrow-left"></i> ফিরে যান</button>
+            <span class="status-text" id="ludoStatus">লালের পালা</span>
+            <button class="back-btn" onclick="resetLudo()"><i class="fas fa-redo"></i></button>
+        </div>
+        <div class="player-info">
+            <span class="player-badge badge-red">🔴 লাল</span>
+            <span class="player-badge badge-green">🟢 সবুজ</span>
+            <span class="player-badge badge-yellow">🟡 হলুদ</span>
+            <span class="player-badge badge-blue">🔵 নীল</span>
+        </div>
+        <div class="ludo-board" id="ludoBoard"></div>
+        <div class="dice-container">
+            <div class="dice" id="dice" onclick="rollDice()">🎲</div>
+            <p style="margin-top:10px; font-size:13px; color:#aaa;" id="diceResult">ছক্কা চাপুন</p>
+        </div>
+        <div class="game-chat">
+            <input type="text" id="ludoChatInput" placeholder="মেসেজ লিখুন...">
+            <button onclick="sendChat('ludo')">পাঠান</button>
+        </div>
+        <div id="ludoMessages" style="margin-top:10px; font-size:13px; color:#aaa; max-height:100px; overflow-y:auto;"></div>
+    </div>
+
+    <!-- ==================== টেম্পল রান ==================== -->
+    <div class="game-screen" id="runnerScreen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="goHome()"><i class="fas fa-arrow-left"></i> ফিরে যান</button>
+            <span class="status-text" id="runnerScore">স্কোর: 0</span>
+            <button class="back-btn" onclick="resetRunner()"><i class="fas fa-redo"></i></button>
+        </div>
+        <canvas class="runner-canvas" id="runnerCanvas"></canvas>
+        <p style="text-align:center; margin-top:10px; font-size:13px; color:#aaa;">স্ক্রিনে টাচ করে বাম/ডানে সরান</p>
+    </div>
+
+    <!-- ==================== ধাঁধা ==================== -->
+    <div class="game-screen" id="puzzleScreen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="goHome()"><i class="fas fa-arrow-left"></i> ফিরে যান</button>
+            <span class="status-text" id="puzzleScore">স্কোর: 0</span>
+            <button class="back-btn" onclick="resetPuzzle()"><i class="fas fa-redo"></i></button>
+        </div>
+        <div class="puzzle-container">
+            <div class="question-box" id="puzzleQuestion">প্রশ্ন লোড হচ্ছে...</div>
+            <div class="options-grid" id="puzzleOptions"></div>
+        </div>
+    </div>
+
+    <!-- গেম ওভার ওভারলে -->
+    <div class="overlay" id="overlay">
+        <h2 id="overlayTitle">গেম ওভার!</h2>
+        <p id="overlayMsg"></p>
+        <button class="btn btn-primary" onclick="closeOverlay()">আবার খেলুন</button>
+    </div>
+
+    <script>
+        // ==================== নেভিগেশন ====================
+        function openGame(game) {
+            document.getElementById('homeScreen').style.display = 'none';
+            document.querySelectorAll('.game-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(game + 'Screen').classList.add('active');
+            
+            if (game === 'chess') initChess();
+            if (game === 'ludo') initLudo();
+            if (game === 'runner') initRunner();
+            if (game === 'puzzle') initPuzzle();
+        }
+
+        function goHome() {
+            document.querySelectorAll('.game-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('homeScreen').style.display = 'block';
+            if (runnerAnimation) cancelAnimationFrame(runnerAnimation);
+        }
+
+        // ==================== দাবা (Chess) ====================
+        let chessBoard = [];
+        let selectedSquare = null;
+        let isWhiteTurn = true;
+        let chessMessages = [];
+
+        const initialBoard = [
+            ['♜','♞','♝','♛','♚','♝','♞','♜'],
+            ['♟','♟','♟','♟','♟','♟','♟','♟'],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['♙','♙','♙','♙','♙','♙','♙','♙'],
+            ['♖','♘','♗','♕','♔','♗','♘','♖']
+        ];
+
+        function initChess() {
+            chessBoard = JSON.parse(JSON.stringify(initialBoard));
+            selectedSquare = null;
+            isWhiteTurn = true;
+            document.getElementById('chessStatus').textContent = 'সাদার চাল';
+            renderChess();
+        }
+
+        function renderChess() {
+            const board = document.getElementById('chessBoard');
+            board.innerHTML = '';
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const square = document.createElement('div');
+                    square.className = 'chess-square ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
+                    square.textContent = chessBoard[r][c];
+                    square.dataset.row = r;
+                    square.dataset.col = c;
+                    
+                    if (selectedSquare && selectedSquare.row === r && selectedSquare.col === c) {
+                        square.classList.add('selected');
+                    }
+                    
+                    square.onclick = () => handleChessClick(r, c);
+                    board.appendChild(square);
+                }
+            }
+        }
+
+        function handleChessClick(r, c) {
+            const piece = chessBoard[r][c];
+            const isWhitePiece = piece && '♙♖♘♗♕♔'.includes(piece);
+            const isBlackPiece = piece && '♟♜♞♝♛♚'.includes(piece);
+
+            if (selectedSquare) {
+                const fromR = selectedSquare.row;
+                const fromC = selectedSquare.col;
+                const fromPiece = chessBoard[fromR][fromC];
+
+                // সরল চাল যাচাই (সম্পূর্ণ নিয়ম নয়, ডেমোর জন্য)
+                if (r !== fromR || c !== fromC) {
+                    chessBoard[r][c] = fromPiece;
+                    chessBoard[fromR][fromC] = '';
+                    isWhiteTurn = !isWhiteTurn;
+                    document.getElementById('chessStatus').textContent = isWhiteTurn ? 'সাদার চাল' : 'কালোর চাল';
+                }
+                selectedSquare = null;
+                renderChess();
+            } else {
+                if ((isWhiteTurn && isWhitePiece) || (!isWhiteTurn && isBlackPiece)) {
+                    selectedSquare = { row: r, col: c };
+                    renderChess();
+                }
+            }
+        }
+
+        function resetChess() {
+            initChess();
+        }
+
+        // ==================== লুডো (Ludo) ====================
+        let ludoTokens = [];
+        let currentPlayer = 0;
+        let diceValue = 0;
+
+        function initLudo() {
+            currentPlayer = 0;
+            diceValue = 0;
+            document.getElementById('ludoStatus').textContent = 'লালের পালা';
+            document.getElementById('diceResult').textContent = 'ছক্কা চাপুন';
+            renderLudo();
+        }
+
+        function renderLudo() {
+            const board = document.getElementById('ludoBoard');
+            board.innerHTML = '';
+            
+            // 15x15 গ্রিড তৈরি
+            for (let i = 0; i < 225; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'ludo-cell';
+                const row = Math.floor(i / 15);
+                const col = i % 15;
+
+                // হোম এরিয়া
+                if (row < 6 && col < 6) cell.classList.add('ludo-home', 'home-red');
+                else if (row < 6 && col > 8) cell.classList.add('ludo-home', 'home-green');
+                else if (row > 8 && col < 6) cell.classList.add('ludo-home', 'home-blue');
+                else if (row > 8 && col > 8) cell.classList.add('ludo-home', 'home-yellow');
+                // সেন্টার
+                else if (row >= 6 && row <= 8 && col >= 6 && col <= 8) {
+                    cell.classList.add('ludo-center');
+                    if (row === 7 && col === 7) cell.textContent = '🏠';
+                }
+                // পাথ
+                else {
+                    cell.classList.add('ludo-path');
+                }
+
+                board.appendChild(cell);
+            }
+        }
+
+        function rollDice() {
+            const dice = document.getElementById('dice');
+            dice.classList.add('rolling');
+            
+            setTimeout(() => {
+                diceValue = Math.floor(Math.random() * 6) + 1;
+                const diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+                dice.textContent = diceFaces[diceValue - 1];
+                document.getElementById('diceResult').textContent = `ছক্কা: ${diceValue}`;
+                dice.classList.remove('rolling');
+                
+                // পরবর্তী খেলোয়াড়
+                currentPlayer = (currentPlayer + 1) % 4;
+                const names = ['লাল', 'সবুজ', 'হলুদ', 'নীল'];
+                document.getElementById('ludoStatus').textContent = `${names[currentPlayer]}ের পালা`;
+            }, 500);
+        }
+
+        function resetLudo() {
+            initLudo();
+        }
+
+        // ==================== টেম্পল রান ====================
+        let runnerAnimation = null;
+        let runnerScore = 0;
+        let playerLane = 1;
+        let obstacles = [];
+        let runnerSpeed = 5;
+        let frameCount = 0;
+
+        function initRunner() {
+            runnerScore = 0;
+            playerLane = 1;
+            obstacles = [];
+            runnerSpeed = 5;
+            frameCount = 0;
+            document.getElementById('runnerScore').textContent = 'স্কোর: 0';
+            
+            const canvas = document.getElementById('runnerCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // টাচ কন্ট্রোল
+            canvas.ontouchstart = (e) => {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                if (x < canvas.width / 3) playerLane = Math.max(0, playerLane - 1);
+                else if (x > canvas.width * 2 / 3) playerLane = Math.min(2, playerLane + 1);
+                else playerLane = 1;
+            };
+
+            canvas.onclick = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                if (x < canvas.width / 3) playerLane = Math.max(0, playerLane - 1);
+                else if (x > canvas.width * 2 / 3) playerLane = Math.min(2, playerLane + 1);
+            };
+
+            function drawRunner() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const laneWidth = canvas.width / 3;
+                const laneY = canvas.height - 120;
+                
+                // রাস্তা
+                ctx.fillStyle = '#6b5b4f';
+                ctx.fillRect(0, laneY - 40, canvas.width, 160);
+                
+                // লেন লাইন
+                ctx.strokeStyle = '#fff';
+                ctx.setLineDash([15, 15]);
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(laneWidth, laneY - 40);
+                ctx.lineTo(laneWidth, laneY + 120);
+                ctx.moveTo(laneWidth * 2, laneY - 40);
+                ctx.lineTo(laneWidth * 2, laneY + 120);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // প্লেয়ার
+                const playerX = laneWidth * playerLane + laneWidth / 2;
+                ctx.fillStyle = '#ffd200';
+                ctx.beginPath();
+                ctx.arc(playerX, laneY + 20, 25, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#1a1a2e';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🏃', playerX, laneY + 28);
+                
+                // বাধা
+                frameCount++;
+                if (frameCount % 60 === 0) {
+                    const randomLane = Math.floor(Math.random() * 3);
+                    obstacles.push({ lane: randomLane, y: -50 });
+                }
+                
+                obstacles.forEach((obs, index) => {
+                    obs.y += runnerSpeed;
+                    const obsX = laneWidth * obs.lane + laneWidth / 2;
+                    ctx.fillStyle = '#ff4757';
+                    ctx.fillRect(obsX - 25, obs.y, 50, 50);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '25px Arial';
+                    ctx.fillText('🪨', obsX, obs.y + 35);
+                    
+                    // সংঘর্ষ
+                    if (obs.y > laneY - 20 && obs.y < laneY + 60 && obs.lane === playerLane) {
+                        showOverlay('গেম ওভার!', `আপনার স্কোর: ${runnerScore}`);
+                        cancelAnimationFrame(runnerAnimation);
+                        return;
+                    }
+                    
+                    if (obs.y > canvas.height) {
+                        obstacles.splice(index, 1);
+                        runnerScore += 10;
+                        document.getElementById('runnerScore').textContent = `স্কোর: ${runnerScore}`;
+                    }
+                });
+                
+                runnerAnimation = requestAnimationFrame(drawRunner);
+            }
+            
+            drawRunner();
+        }
+
+        function resetRunner() {
+            if (runnerAnimation) cancelAnimationFrame(runnerAnimation);
+            initRunner();
+        }
+
+        // ==================== ধাঁধা (Puzzle) ====================
+        const puzzles = [
+            { q: "৫ + ৭ = কত?", options: ["১০", "১২", "১৪", "১১"], answer: "১২" },
+            { q: "১২ × ৩ = কত?", options: ["৩৬", "৩২", "৪০", "৩০"], answer: "৩৬" },
+            { q: "'আকাশ' শব্দের সমার্থক শব্দ কোনটি?", options: ["গগন", "পাতাল", "সমুদ্র", "নদী"], answer: "গগন" },
+            { q: "একটি ত্রিভুজের কয়টি বাহু থাকে?", options: ["২", "৩", "৪", "৫"], answer: "৩" },
+            { q: "১০০ এর ১০% কত?", options: ["১", "১০", "১০০", "৫"], answer: "১০" },
+            { q: "৯ এর বর্গ কত?", options: ["১৮", "৮১", "৭২", "৯০"], answer: "৮১" },
+            { q: "'সূর্য' শব্দের সমার্থক শব্দ কোনটি?", options: ["চাঁদ", "রবি", "তারা", "আকাশ"], answer: "রবি" },
+            { q: "২৫ ÷ ৫ = কত?", options: ["৪", "৫", "৬", "৭"], answer: "৫" }
+        ];
+        let puzzleScore = 0;
+        let currentPuzzle = null;
+        let puzzleAnswered = false;
+
+        function initPuzzle() {
+            puzzleScore = 0;
+            document.getElementById('puzzleScore').textContent = 'স্কোর: 0';
+            nextPuzzle();
+        }
+
+        function nextPuzzle() {
+            puzzleAnswered = false;
+            currentPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            document.getElementById('puzzleQuestion').textContent = currentPuzzle.q;
+            
+            const optionsDiv = document.getElementById('puzzleOptions');
+            optionsDiv.innerHTML = '';
+            
+            const shuffled = [...currentPuzzle.options].sort(() => Math.random() - 0.5);
+            shuffled.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkPuzzleAnswer(btn, opt);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function checkPuzzleAnswer(btn, selected) {
+            if (puzzleAnswered) return;
+            puzzleAnswered = true;
+            
+            const buttons = document.querySelectorAll('#puzzleOptions .option-btn');
+            buttons.forEach(b => b.disabled = true);
+            
+            if (selected === currentPuzzle.answer) {
+                btn.classList.add('correct');
+                puzzleScore += 10;
+                document.getElementById('puzzleScore').textContent = `স্কোর: ${puzzleScore}`;
+            } else {
+                btn.classList.add('wrong');
+                buttons.forEach(b => {
+                    if (b.textContent === currentPuzzle.answer) b.classList.add('correct
